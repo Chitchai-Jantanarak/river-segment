@@ -1,0 +1,16 @@
+data/*
+!data/.gitkeep
+!data/README.md
+
+model/*
+!model/.gitkeep
+!model/README.md
+
+results/*
+!results/.gitkeep
+!results/README.md
+
+__pycache__
+.ruff_cache
+
+.venv

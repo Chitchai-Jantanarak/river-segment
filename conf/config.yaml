@@ -1,0 +1,11 @@
+input: ""
+ckpt: ""
+out: results
+task: all
+thresh: 0.4
+size: 512
+sword: null
+backbone: null
+head: null
+adaptor: linear
+method: vanilla

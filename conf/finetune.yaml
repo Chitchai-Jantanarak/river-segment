@@ -1,0 +1,3 @@
+extends: train.yaml
+phase: finetune
+freeze_backbone: true
