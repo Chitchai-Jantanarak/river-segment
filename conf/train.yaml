@@ -1,7 +1,12 @@
-data: ""
-ckpt: ""
-out: model
+defaults:
+  - paths         
+  - _self_
+
+data: ${data_train}             # training image directory
+ckpt: ${model_satlas}           # starting checkpoint (from paths.yaml)
+out: ${out_finetune}            # checkpoint output directory
 epochs: 30
 lr: 0.0001
 batch: 8
 warmup: 5
+size: 512

@@ -1,14 +1,23 @@
-# Argument priority: CLI overrides → these defaults
-# Usage: python main.py input=data/foo.tif ckpt=model/satlas/model.pth.tar [thresh=0.4]
+defaults:
+  - paths          
+  - _self_        
 
-input: ""          # required — TIFF file or directory
-ckpt: ""           # required — checkpoint (.pth / .pth.tar bundle)
-out: results       # output root directory
-task: all          # all | shape | centerline | width
-thresh: 0.4        # water probability threshold
-size: 512          # model input resolution
-sword: null        # optional SWORD shapefile directory for width measurement
-backbone: null     # override backbone for plain (non-bundle) .pth
-head: null         # override head for plain (non-bundle) .pth
+input: ""                       # required 
+ckpt: ${model_satlas}           # default: satlas SwinB checkpoint (from paths.yaml)
+out: ${out_infer}               # default: results/
+task: all                       # all | shape | centerline | width
+thresh: 0.4           
+size: 512                
+sword: null                   
+backbone: null                 
+head: null                      
 adaptor: linear
 method: vanilla
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+  job_logging:
+    root:
+      handlers: []

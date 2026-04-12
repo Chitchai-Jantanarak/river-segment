@@ -1,0 +1,9 @@
+model_satlas: model/satlas/sentinel2_swinb_si_rgb.pth.tar
+model_resnet: model/resnet/model.pth.tar
+
+data_root: data/
+data_train: ${data_root}/train
+data_valid: ${data_root}/valid
+
+out_infer: results
+out_finetune: model/finetune

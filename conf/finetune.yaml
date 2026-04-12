@@ -1,3 +1,6 @@
-extends: train.yaml
+defaults:
+  - train          # inherits all train.yaml defaults (which in turn pulls paths.yaml)
+  - _self_
+
 phase: finetune
 freeze_backbone: true
