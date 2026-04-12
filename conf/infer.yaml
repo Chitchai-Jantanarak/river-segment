@@ -1,2 +1,14 @@
-thresh: 0.4
-size: 512
+# Argument priority: CLI overrides → these defaults
+# Usage: python main.py input=data/foo.tif ckpt=model/satlas/model.pth.tar [thresh=0.4]
+
+input: ""          # required — TIFF file or directory
+ckpt: ""           # required — checkpoint (.pth / .pth.tar bundle)
+out: results       # output root directory
+task: all          # all | shape | centerline | width
+thresh: 0.4        # water probability threshold
+size: 512          # model input resolution
+sword: null        # optional SWORD shapefile directory for width measurement
+backbone: null     # override backbone for plain (non-bundle) .pth
+head: null         # override head for plain (non-bundle) .pth
+adaptor: linear
+method: vanilla

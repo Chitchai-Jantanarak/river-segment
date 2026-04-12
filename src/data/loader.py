@@ -14,12 +14,24 @@ EPS = 1e-7
 S2_IDX = (1, 2, 3, 7)
 
 
+def _load_s2_bands(raw: np.ndarray) -> np.ndarray:
+    if raw.shape[0] >= 8:
+        bands = raw[list(S2_IDX)].astype(np.float32)
+    elif raw.shape[0] == 4:
+        bands = raw[:4].astype(np.float32)
+    else:
+        r = raw[:3].astype(np.float32)
+        bands = np.concatenate([r, r.mean(axis=0, keepdims=True)], axis=0)
+    lo, hi = np.percentile(bands, 2), np.percentile(bands, 98)
+    return np.clip((bands - lo) / max(hi - lo, EPS), 0, 1)
+
+
 class S2Dataset(Dataset):
     def __init__(self, csv_path: str, root: str, size: int = 512, augment: bool = True):
         self.root = Path(root)
         self.size = size
         self.augment = augment
-        self.samples = []
+        self.samples: list[tuple[str, str]] = []
         with open(csv_path) as f:
             for row in csv.DictReader(f):
                 s2 = self.root / row["s2_path_reprojected"]
@@ -36,11 +48,7 @@ class S2Dataset(Dataset):
 
         with rasterio.open(s2p) as src:
             raw = src.read()
-        raw = raw[S2_IDX] if raw.shape[0] > max(S2_IDX) else raw[:4]
-        raw = raw.astype(np.float32)
-        lo, hi = np.percentile(raw, 2), np.percentile(raw, 98)
-        raw = np.clip((raw - lo) / max(hi - lo, EPS), 0, 1)
-        img = torch.from_numpy(raw)
+        img = torch.from_numpy(_load_s2_bands(raw))
 
         with rasterio.open(lblp) as src:
             lbl = src.read(1).astype(np.float32)
