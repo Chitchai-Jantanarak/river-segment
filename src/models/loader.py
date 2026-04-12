@@ -8,12 +8,14 @@ from loguru import logger
 
 from src.models.factory import get_model
 
-SATLAS_BACKBONES: frozenset[str] = frozenset({
-    "satlas_si_swinb",
-    "satlas_si_swint",
-    "satlas_si_resnet50",
-    "satlas_mi_swinb",
-})
+SATLAS_BACKBONES: frozenset[str] = frozenset(
+    {
+        "satlas_si_swinb",
+        "satlas_si_swint",
+        "satlas_si_resnet50",
+        "satlas_mi_swinb",
+    }
+)
 
 
 def load_checkpoint(

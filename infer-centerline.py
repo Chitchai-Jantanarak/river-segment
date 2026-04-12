@@ -12,7 +12,7 @@ from scipy.ndimage import binary_fill_holes
 from skimage.morphology import skeletonize
 
 from src.data.controller import TIFFReader
-from src.data.io import build_output_dir, find_tiff_files
+from src.data.io import build_output_dir, find_tiff_files, resolution_m
 from src.domain.inference import ImageMetadata
 from src.models import load_checkpoint
 from src.services.centerline import infer_centerline
@@ -63,8 +63,10 @@ def main() -> None:
         with rasterio.open(tif_path) as src:
             raw = src.read()
             H, W = raw.shape[1], raw.shape[2]
-            res_m = abs(src.transform.a)
-            meta = ImageMetadata(shape=raw.shape, transform=src.transform, crs=src.crs, bounds=src.bounds, resolution=res_m)
+            res_m = resolution_m(src)
+            meta = ImageMetadata(
+                shape=raw.shape, transform=src.transform, crs=src.crs, bounds=src.bounds, resolution=res_m
+            )
         logger.info(f"  {W}x{H}px | {res_m:.2f}m/px | {raw.shape[0]} bands")
 
         reader = TIFFReader(tif_path)

@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 from loguru import logger
+
+if TYPE_CHECKING:
+    import rasterio
 
 
 def find_tiff_files(input_path: str | Path) -> list[Path]:
@@ -24,6 +29,14 @@ def find_tiff_files(input_path: str | Path) -> list[Path]:
 
 def build_output_dir(base_out: Path, input_path: Path, task: str) -> Path:
     return base_out / input_path.parent.name / task / input_path.stem
+
+
+def resolution_m(src: rasterio.DatasetReader) -> float:
+    px = abs(src.transform.a)
+    if src.crs.is_geographic:
+        center_lat = (src.bounds.top + src.bounds.bottom) / 2
+        return px * 111320 * math.cos(math.radians(center_lat))
+    return px
 
 
 def pad_bands(raw: np.ndarray, target: int = 4) -> np.ndarray:

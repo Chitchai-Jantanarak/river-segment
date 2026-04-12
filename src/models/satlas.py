@@ -11,7 +11,9 @@ import torchvision
 from loguru import logger
 
 
-def _adjust_prefix(state_dict: dict, needed: str, prefix: str | None = None, prefix_allowed_count: int | None = None) -> dict:
+def _adjust_prefix(
+    state_dict: dict, needed: str, prefix: str | None = None, prefix_allowed_count: int | None = None
+) -> dict:
     out = {}
     for key, value in state_dict.items():
         if needed not in key:
@@ -23,7 +25,9 @@ def _adjust_prefix(state_dict: dict, needed: str, prefix: str | None = None, pre
     return out
 
 
-def _adjust_prefix_modified(state_dict: dict, needed: str, prefix: str | None = None, prefix_allowed_count: int | None = None) -> dict:
+def _adjust_prefix_modified(
+    state_dict: dict, needed: str, prefix: str | None = None, prefix_allowed_count: int | None = None
+) -> dict:
     out = {}
     for key, value in state_dict.items():
         if (needed in key) or (needed == "upsample"):
@@ -113,7 +117,9 @@ class ResnetBackbone(nn.Module):
             ch = [256, 512, 1024, 2048]
         else:
             raise ValueError(f"Unsupported arch: {arch}")
-        self.resnet.conv1 = nn.Conv2d(num_channels, self.resnet.conv1.out_channels, kernel_size=7, stride=2, padding=3, bias=False)
+        self.resnet.conv1 = nn.Conv2d(
+            num_channels, self.resnet.conv1.out_channels, kernel_size=7, stride=2, padding=3, bias=False
+        )
         self.out_channels = [[4, ch[0]], [8, ch[1]], [16, ch[2]], [32, ch[3]]]
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
@@ -192,7 +198,11 @@ class SatlasModel(nn.Module):
             if fpn:
                 weights_url = "https://huggingface.co/allenai/satlas-pretrain/resolve/main/sentinel2_swint_si_rgb.pth?download=true"
                 response = requests.get(weights_url)
-                weights_file = BytesIO(response.content) if response.status_code == 200 else "checkpoints/satlas/sentinel2_swint_si_rgb.pth"
+                weights_file = (
+                    BytesIO(response.content)
+                    if response.status_code == 200
+                    else "checkpoints/satlas/sentinel2_swint_si_rgb.pth"
+                )
                 weights = torch.load(weights_file, map_location="cpu")
                 model_fpn.load_state_dict(_adjust_prefix(weights, "fpn", "intermediates.0.", 0), strict=True)
             self.backbone = nn.Sequential(model, model_fpn, Upsample(model_fpn.out_channels))
@@ -212,7 +222,11 @@ class SatlasModel(nn.Module):
             if fpn:
                 weights_url = "https://huggingface.co/allenai/satlas-pretrain/resolve/main/sentinel2_resnet50_si_rgb.pth?download=true"
                 response = requests.get(weights_url)
-                weights_file = BytesIO(response.content) if response.status_code == 200 else "checkpoints/satlas/sentinel2_resnet50_si_rgb.pth"
+                weights_file = (
+                    BytesIO(response.content)
+                    if response.status_code == 200
+                    else "checkpoints/satlas/sentinel2_resnet50_si_rgb.pth"
+                )
                 weights = torch.load(weights_file, map_location="cpu")
                 model_fpn.load_state_dict(_adjust_prefix(weights, "fpn", "intermediates.0.", 0), strict=True)
             self.backbone = nn.Sequential(model, model_fpn, Upsample(model_fpn.out_channels))
@@ -232,7 +246,9 @@ class SatlasHead(nn.Module):
         super().__init__()
         layers: list[nn.Module] = []
         for _ in range(1):
-            layers.append(nn.Sequential(nn.Conv2d(backbone_channels, backbone_channels, 3, padding=1), nn.ReLU(inplace=True)))
+            layers.append(
+                nn.Sequential(nn.Conv2d(backbone_channels, backbone_channels, 3, padding=1), nn.ReLU(inplace=True))
+            )
         layers.append(nn.Conv2d(backbone_channels, out_channels, 3, padding=1))
         self.head = nn.Sequential(*layers)
 

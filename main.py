@@ -16,7 +16,7 @@ from scipy.ndimage import binary_fill_holes
 from skimage.morphology import skeletonize
 
 from src.data.controller import TIFFReader
-from src.data.io import build_output_dir, find_tiff_files
+from src.data.io import build_output_dir, find_tiff_files, resolution_m
 from src.domain.inference import ImageMetadata
 from src.models import load_checkpoint
 from src.services.centerline import infer_centerline
@@ -39,10 +39,7 @@ def _preprocess(prob: np.ndarray, thresh: float) -> np.ndarray:
 @hydra.main(version_base=None, config_path="conf", config_name="infer")
 def main(cfg: DictConfig) -> None:
     if not cfg.input:
-        logger.error("input is required: python main.py input=path/to/file.tif ckpt=path/to/model.pth")
-        sys.exit(1)
-    if not cfg.ckpt:
-        logger.error("ckpt is required: python main.py input=... ckpt=path/to/model.pth")
+        logger.error("input is required: python main.py input=path/to/file.tif")
         sys.exit(1)
 
     input_files = find_tiff_files(cfg.input)
@@ -75,8 +72,10 @@ def main(cfg: DictConfig) -> None:
         with rasterio.open(tif_path) as src:
             raw = src.read()
             H, W = raw.shape[1], raw.shape[2]
-            res_m = abs(src.transform.a)
-            meta = ImageMetadata(shape=raw.shape, transform=src.transform, crs=src.crs, bounds=src.bounds, resolution=res_m)
+            res_m = resolution_m(src)
+            meta = ImageMetadata(
+                shape=raw.shape, transform=src.transform, crs=src.crs, bounds=src.bounds, resolution=res_m
+            )
         logger.info(f"  {W}x{H}px | {res_m:.2f}m/px | {raw.shape[0]} bands")
 
         reader = TIFFReader(tif_path)
@@ -126,8 +125,9 @@ def run_infer(
     backbone: Optional[str] = None,
     head: Optional[str] = None,
 ) -> None:
-    overrides = dict(input=input, ckpt=ckpt, out=out, task=task, thresh=thresh,
-                     size=size, sword=sword, backbone=backbone, head=head)
+    overrides = dict(
+        input=input, ckpt=ckpt, out=out, task=task, thresh=thresh, size=size, sword=sword, backbone=backbone, head=head
+    )
     main(OmegaConf.create(overrides))
 
 

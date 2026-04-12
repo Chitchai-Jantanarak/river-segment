@@ -7,7 +7,8 @@ import numpy as np
 import rasterio
 from torch.utils.data import DataLoader
 
-from .loader import S2Dataset, build_loaders
+from .io import resolution_m
+from .loader import S2Dataset, S2_IDX, build_loaders
 
 
 class DataController:
@@ -54,13 +55,16 @@ class TIFFReader:
                 "transform": src.transform,
                 "crs": src.crs,
                 "bounds": src.bounds,
-                "resolution": abs(src.transform.a),
+                "resolution": resolution_m(src),
             }
         return raw, meta
 
     def normalize(self, raw: np.ndarray, bands: int = 4) -> np.ndarray:
         EPS = 1e-7
-        if raw.shape[0] >= bands:
+        # For full S2 (8+ bands) select B2,B3,B4,B8 matching S2Dataset training order
+        if raw.shape[0] >= 8:
+            img = raw[list(S2_IDX)].astype(np.float32)
+        elif raw.shape[0] >= bands:
             img = raw[:bands].astype(np.float32)
         elif raw.shape[0] == 3:
             r = raw.astype(np.float32)
@@ -75,8 +79,11 @@ class TIFFReader:
 
     def get_rgb(self, raw: np.ndarray) -> np.ndarray:
         EPS = 1e-7
-        rgb_raw = raw[:3].astype(np.float32)
+        # For full S2 use B4(Red),B3(Green),B2(Blue) for natural-colour visualization
+        if raw.shape[0] >= 8:
+            rgb_raw = raw[[3, 2, 1]].astype(np.float32)  # R,G,B from S2 band order
+        else:
+            rgb_raw = raw[:3].astype(np.float32)
         lo, hi = np.percentile(rgb_raw, 2), np.percentile(rgb_raw, 98)
         rgb = np.clip((rgb_raw - lo) / max(hi - lo, EPS), 0, 1)
-        rgb = np.transpose(rgb, (1, 2, 0))
-        return rgb
+        return np.transpose(rgb, (1, 2, 0))

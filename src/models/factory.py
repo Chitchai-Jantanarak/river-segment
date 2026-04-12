@@ -14,10 +14,15 @@ from src.models.base import MultiTaskModel, SingleTaskModel
 _SATLAS_CHANNELS = 128
 
 _SMP_BACKBONES = {
-    "resnet50", "mobilenet_v2",
-    "resnet50_mocov3", "resnet50_seco",
-    "swint", "swinb",
-    "satlas_si_swinb", "satlas_si_swint", "satlas_si_resnet50",
+    "resnet50",
+    "mobilenet_v2",
+    "resnet50_mocov3",
+    "resnet50_seco",
+    "swint",
+    "swinb",
+    "satlas_si_swinb",
+    "satlas_si_swint",
+    "satlas_si_resnet50",
     "satlas_mi_swinb",
 }
 
@@ -106,30 +111,64 @@ def get_model(
         weights = "imagenet" if pretrained else None
 
         if backbone_name == "resnet50":
-            smp_model = smp.create_model(arch=segment_model, encoder_name="resnet50", encoder_weights=weights, in_channels=segmodel_in_channels, classes=1)
+            smp_model = smp.create_model(
+                arch=segment_model,
+                encoder_name="resnet50",
+                encoder_weights=weights,
+                in_channels=segmodel_in_channels,
+                classes=1,
+            )
             backbone: nn.Module = ModelwithAdaptor(adaptor=adaptor, backbone=smp_model, num_inp_feats=num_inp_feats)
             head_name = "no_head"
 
         elif backbone_name == "resnet50_mocov3":
-            smp_model = smp.create_model(arch=segment_model, encoder_name="resnet50", encoder_weights="imagenet", in_channels=segmodel_in_channels, classes=1)
+            smp_model = smp.create_model(
+                arch=segment_model,
+                encoder_name="resnet50",
+                encoder_weights="imagenet",
+                in_channels=segmodel_in_channels,
+                classes=1,
+            )
             sd = torch.load("checkpoints/moco_v3/r-50-100ep.pth.tar")["state_dict"]
-            new_sd = {k[len("module.base_encoder."):]: v for k in sd if k.startswith("module.base_encoder") and not k.startswith("module.base_encoder.fc")}
+            new_sd = {
+                k[len("module.base_encoder.") :]: v
+                for k in sd
+                if k.startswith("module.base_encoder") and not k.startswith("module.base_encoder.fc")
+            }
             smp_model.encoder.load_state_dict(new_sd, strict=True)
             backbone = ModelwithAdaptor(adaptor=adaptor, backbone=smp_model, num_inp_feats=num_inp_feats)
             head_name = "no_head"
 
         elif backbone_name == "mobilenet_v2":
-            smp_model = smp.create_model(arch=segment_model, encoder_name="mobilenet_v2", encoder_weights=weights, in_channels=segmodel_in_channels, classes=1)
+            smp_model = smp.create_model(
+                arch=segment_model,
+                encoder_name="mobilenet_v2",
+                encoder_weights=weights,
+                in_channels=segmodel_in_channels,
+                classes=1,
+            )
             backbone = ModelwithAdaptor(adaptor=adaptor, backbone=smp_model, num_inp_feats=num_inp_feats)
             head_name = "no_head"
 
         elif backbone_name == "swint":
-            smp_model = smp.create_model(arch=segment_model, encoder_name="tu-swin_s3_tiny_224.ms_in1k", encoder_weights=weights, in_channels=segmodel_in_channels, classes=1)
+            smp_model = smp.create_model(
+                arch=segment_model,
+                encoder_name="tu-swin_s3_tiny_224.ms_in1k",
+                encoder_weights=weights,
+                in_channels=segmodel_in_channels,
+                classes=1,
+            )
             backbone = ModelwithAdaptor(adaptor=adaptor, backbone=smp_model, num_inp_feats=num_inp_feats)
             head_name = "no_head"
 
         elif backbone_name == "swinb":
-            smp_model = smp.create_model(arch=segment_model, encoder_name="tu-swin_s3_base_224.ms_in1k", encoder_weights=weights, in_channels=segmodel_in_channels, classes=1)
+            smp_model = smp.create_model(
+                arch=segment_model,
+                encoder_name="tu-swin_s3_base_224.ms_in1k",
+                encoder_weights=weights,
+                in_channels=segmodel_in_channels,
+                classes=1,
+            )
             backbone = ModelwithAdaptor(adaptor=adaptor, backbone=smp_model, num_inp_feats=num_inp_feats)
             head_name = "no_head"
 
@@ -152,7 +191,9 @@ def get_model(
         enc_name = _dpt_map.get(backbone_name)
         if enc_name is None:
             raise ValueError(f"Unknown DPT backbone: {backbone_name}")
-        smp_model = smp.create_model(arch="dpt", encoder_name=enc_name, encoder_weights=weights, in_channels=segmodel_in_channels, classes=1)
+        smp_model = smp.create_model(
+            arch="dpt", encoder_name=enc_name, encoder_weights=weights, in_channels=segmodel_in_channels, classes=1
+        )
         backbone = ModelwithAdaptor(adaptor=adaptor, backbone=smp_model, num_inp_feats=num_inp_feats)
         head_name = "no_head"
 
