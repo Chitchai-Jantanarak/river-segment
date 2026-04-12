@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any, Optional
 
@@ -41,7 +43,7 @@ class DataController:
 
 
 class TIFFReader:
-    def __init__(self, path: str):
+    def __init__(self, path: str | Path):
         self.path = Path(path)
 
     def read(self) -> tuple[np.ndarray, dict[str, Any]]:

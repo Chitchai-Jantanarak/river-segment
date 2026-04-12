@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -91,7 +93,7 @@ def main(cfg: DictConfig) -> None:
 
         skeleton: Optional[np.ndarray] = None
         if do_centerline or do_width:
-            skeleton = skeletonize(mask.astype(bool)).astype(np.uint8)
+            skeleton: np.ndarray = np.asarray(skeletonize(mask.astype(bool)), dtype=np.uint8)
 
         if do_shape:
             logger.info("--- shape ---")
