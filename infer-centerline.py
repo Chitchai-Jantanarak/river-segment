@@ -77,7 +77,7 @@ def main() -> None:
         prob = cv2.resize(prob, (W, H), interpolation=cv2.INTER_LINEAR)
 
         mask = _preprocess(prob, args.thresh)
-        skeleton = skeletonize(mask.astype(bool)).astype(np.uint8)
+        skeleton: np.ndarray = np.asarray(skeletonize(mask.astype(bool)), dtype=np.uint8)
         logger.info(f"  Water: {mask.mean() * 100:.2f}%")
 
         infer_centerline(mask, meta, rgb, out_dir, stem, skeleton)

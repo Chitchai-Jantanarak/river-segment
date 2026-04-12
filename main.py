@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import cv2
 import hydra
@@ -91,27 +91,24 @@ def main(cfg: DictConfig) -> None:
         mask = _preprocess(prob, cfg.thresh)
         logger.info(f"  Water: {mask.mean() * 100:.2f}%  ({mask.sum() * res_m**2 / 1e6:.3f} km²)")
 
-        skeleton: Optional[np.ndarray] = None
-        if do_centerline or do_width:
-            skeleton: np.ndarray = np.asarray(skeletonize(mask.astype(bool)), dtype=np.uint8)
-
         if do_shape:
             logger.info("--- shape ---")
             out_dir = build_output_dir(base_out, tif_path, "shape")
             out_dir.mkdir(parents=True, exist_ok=True)
             infer_shape(mask, meta, rgb, out_dir, stem)
 
-        if do_centerline:
-            logger.info("--- centerline ---")
-            out_dir = build_output_dir(base_out, tif_path, "centerline")
-            out_dir.mkdir(parents=True, exist_ok=True)
-            infer_centerline(mask, meta, rgb, out_dir, stem, skeleton)
-
-        if do_width:
-            logger.info("--- width ---")
-            out_dir = build_output_dir(base_out, tif_path, "width")
-            out_dir.mkdir(parents=True, exist_ok=True)
-            infer_width(mask, skeleton, meta, rgb, out_dir, stem, sword_dir)
+        if do_centerline or do_width:
+            skeleton: np.ndarray = np.asarray(skeletonize(mask.astype(bool)), dtype=np.uint8)
+            if do_centerline:
+                logger.info("--- centerline ---")
+                out_dir = build_output_dir(base_out, tif_path, "centerline")
+                out_dir.mkdir(parents=True, exist_ok=True)
+                infer_centerline(mask, meta, rgb, out_dir, stem, skeleton)
+            if do_width:
+                logger.info("--- width ---")
+                out_dir = build_output_dir(base_out, tif_path, "width")
+                out_dir.mkdir(parents=True, exist_ok=True)
+                infer_width(mask, skeleton, meta, rgb, out_dir, stem, sword_dir)
 
         print(f"Done  ->  {build_output_dir(base_out, tif_path, cfg.task)}/")
 
