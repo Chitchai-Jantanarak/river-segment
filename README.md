@@ -33,7 +33,7 @@ python infer-all.py --input data/foo.tif --ckpt model/baz.pth.tar
 | `--input` | Input GeoTIFF path | Required |
 | `--ckpt` | Model checkpoint path | Required |
 | `--out` | Output directory | `results` |
-| `--thresh` | Water probability threshold (0-1) | 0.35 |
+| `--thresh` | Water probability threshold (0-1) | 0.4 |
 | `--size` | Model input size | 512 |
 
 ### Example Cases
@@ -48,10 +48,10 @@ python infer-shape.py \
 
 Output:
 - `results/foo_river_shape.tif`
-- `results/Hatyai_Full_Area_3m_river_shape.png`
-- `results/Hatyai_Full_Area_3m_river_shape_bw.tif` (binary mask)
-- `results/Hatyai_Full_Area_3m_river_shape_bw.png` (grayscale)
-- `results/Hatyai_Full_Area_3m_river_shape.gpkg`
+- `results/foo_river_shape.png`
+- `results/foo_river_shape.gpkg`
+- `results/foo_river_shape_bw.tif` (binary mask)
+- `results/foo_river_shape_bw.png` (grayscale)
 
 #### 2. Lower Threshold (more water detected)
 
@@ -86,7 +86,7 @@ python infer-centerline.py \
 python infer-width.py \
     --input data/foo.tif \
     --ckpt model/baz.pth.tar \
-    --thresh 0.35
+    --thresh 0.4
 ```
 
 #### 6. All Tasks at Once
@@ -95,7 +95,7 @@ python infer-width.py \
 python infer-all.py \
     --input data/foo.tif \
     --ckpt model/baz.pth.tar \
-    --thresh 0.35 \
+    --thresh 0.4 \
     --out results
 ```
 
