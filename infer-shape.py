@@ -52,18 +52,53 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
 
     logger.info(f"Loading checkpoint: {ckpt_path}")
-    ckpt_opt = SimpleNamespace(
-        segment_model="unet",
-        backbone="resnet50",
-        head="unet",
+    raw_ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    is_bundle = isinstance(raw_ckpt, dict) and "state_dict" in raw_ckpt
+
+    if is_bundle:
+        ckpt_opt = raw_ckpt["opt"]
+        sd = raw_ckpt["state_dict"]
+        seg_model = getattr(ckpt_opt, "segment_model", "unet")
+        backb = getattr(ckpt_opt, "backbone", "resnet50")
+        logger.info(f"  Bundle -> segment: {seg_model}, backbone: {backb}")
+    else:
+        sd = raw_ckpt
+        seg_model = "unet"
+        backb = "resnet50"
+        logger.info(f"  Plain .pth -> segment: unet")
+
+    ckpt_opt_smp = SimpleNamespace(
+        segment_model=seg_model,
+        backbone=backb
+        if backb
+        in [
+            "resnet18",
+            "resnet34",
+            "resnet50",
+            "resnet101",
+            "resnet152",
+            "resnext50_32x4d",
+            "resnext101_32x4d",
+            "efficientnet-b0",
+            "efficientnet-b1",
+            "efficientnet-b2",
+            "efficientnet-b3",
+            "efficientnet-b4",
+            "mobilenet_v2",
+        ]
+        else "resnet50",
         resize_size=size,
     )
-    model = get_model(ckpt_opt, tasks_outputs={"water_mask": 1}, num_inp_feats=4, pretrained=False)
+    try:
+        model = get_model(ckpt_opt_smp, tasks_outputs={"water_mask": 1}, num_inp_feats=4, pretrained=False)
+    except Exception:
+        ckpt_opt_smp.segment_model = "unet"
+        ckpt_opt_smp.backbone = "resnet50"
+        model = get_model(ckpt_opt_smp, tasks_outputs={"water_mask": 1}, num_inp_feats=4, pretrained=False)
 
-    raw_ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
-    sd = raw_ckpt.get("state_dict", raw_ckpt)
     sd_clean = {k.replace("module.", "").replace("model.", ""): v for k, v in sd.items()}
-    model.load_state_dict(sd_clean, strict=False)
+    load_msg = model.load_state_dict(sd_clean, strict=False)
+    logger.info(f"  Loaded: missing={len(load_msg.missing_keys)}, unexpected={len(load_msg.unexpected_keys)}")
     model.eval()
     logger.info("Model ready")
 
@@ -86,9 +121,9 @@ def main():
         img_tensor = T.Compose([T.ToTensor(), T.Resize((size, size))])(img)
         img_tensor = img_tensor.unsqueeze(0)
 
-with torch.no_grad():
-        out = model(img_tensor)
-        prob = torch.sigmoid(out).squeeze().cpu().numpy()
+        with torch.no_grad():
+            out = model(img_tensor)
+            prob = torch.sigmoid(out).squeeze().cpu().numpy()
 
         prob = cv2.resize(prob, (W, H), interpolation=cv2.INTER_LINEAR)
 
