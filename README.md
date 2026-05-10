@@ -10,6 +10,18 @@ uv sync
 
 ## Quick Start
 
+### Model Setup
+
+loading weight model from [here](https://drive.google.com/drive/folders/1lr5mg9U5kXl6TVNSN188KW4BAMGN8BCO?usp=sharing)
+
+```
+river-segment/
+├── ...
+├── data/                  
+│   ├── `{model_header}`/some_model_things.pth.tar      
+...
+```
+
 ### Inference Scripts
 
 ```bash
